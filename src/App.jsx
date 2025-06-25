@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import Search from "./components/Search.jsx";
 import Spinner from "./components/Spinner.jsx";
 import MovieCard from "./components/MovieCard.jsx";
+import {useDebounce} from "react-use";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 
@@ -15,12 +16,39 @@ const API_OPTIONS = {
   },
 };
 
+/**
+ * App component serves as the main container for the movie search application.
+ * It handles:
+ *  - user search input,
+ *  - debounced API calls to TMDB (The Movie Database),
+ *  - loading and error state management,
+ *  - rendering movie search results or popular movies.
+ *
+ * @component
+ */
 const App = () => {
+  // State hooks for input value, API error message, movie data, loading indicator, and debounced query
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
-  const [isloading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [debouncedSeachTerm, setDebouncedSeachTerm] = useState("");
 
+  /**
+   * useDebounce delays updating the debounced search term for 500ms
+   * after the user stops typing, to minimize unnecessary API calls.
+   */
+  useDebounce(() => setDebouncedSeachTerm(searchTerm), 500, [searchTerm]);
+
+  /**
+   * Fetches movies from TMDB.
+   * If a search term is provided, it performs a search;
+   * otherwise, it fetches popular movies.
+   *
+   * @async
+   * @param {string} query - Search term entered by the user.
+   * @returns {Promise<void>}
+   */
   const fetchMovies = async (query = "") => {
     setIsLoading(true);
     setErrorMessage("");
@@ -52,9 +80,12 @@ const App = () => {
     }
   };
 
+  /**
+   * useEffect triggers a fetch whenever the search term updates.
+   */
   useEffect(() => {
-    fetchMovies(searchTerm);
-  }, [searchTerm]);
+    fetchMovies(debouncedSeachTerm);
+  }, [debouncedSeachTerm]);
 
   return (
     <main>
@@ -72,7 +103,7 @@ const App = () => {
 
         <section className="all-movies">
           <h2>All Movies</h2>
-          {isloading ? (
+          {isLoading ? (
             <Spinner />
           ) : errorMessage ? (
             <p className="text-white">{errorMessage}</p>
