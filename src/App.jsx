@@ -3,6 +3,7 @@ import Search from "./components/Search.jsx";
 import Spinner from "./components/Spinner.jsx";
 import MovieCard from "./components/MovieCard.jsx";
 import {useDebounce} from "react-use";
+import {getTrendingMovies, updateSearchCount} from "./appwrite.js";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 
@@ -17,36 +18,27 @@ const API_OPTIONS = {
 };
 
 /**
- * App component serves as the main container for the movie search application.
- * It handles:
- *  - user search input,
- *  - debounced API calls to TMDB (The Movie Database),
- *  - loading and error state management,
- *  - rendering movie search results or popular movies.
+ * Main App component for the Movie Finder application.
+ * Handles searching, displaying trending and popular movies.
  *
  * @component
  */
 const App = () => {
-  // State hooks for input value, API error message, movie data, loading indicator, and debounced query
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [debouncedSeachTerm, setDebouncedSeachTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [trendingMovies, setTrendingMovies] = useState([]);
+
+  useDebounce(() => setDebouncedSearchTerm(searchTerm), 1000, [searchTerm]);
 
   /**
-   * useDebounce delays updating the debounced search term for 500ms
-   * after the user stops typing, to minimize unnecessary API calls.
-   */
-  useDebounce(() => setDebouncedSeachTerm(searchTerm), 500, [searchTerm]);
-
-  /**
-   * Fetches movies from TMDB.
-   * If a search term is provided, it performs a search;
-   * otherwise, it fetches popular movies.
+   * Fetches movies from the TMDB API based on a search query.
+   * Updates the movie list and handles errors.
    *
    * @async
-   * @param {string} query - Search term entered by the user.
+   * @param {string} [query=""] - The search term for querying movies.
    * @returns {Promise<void>}
    */
   const fetchMovies = async (query = "") => {
@@ -60,18 +52,24 @@ const App = () => {
       const response = await fetch(endpoint, API_OPTIONS);
 
       if (!response.ok) {
-        throw new Error("Failed to fetch movies");
+        setErrorMessage("Failed to fetch movies");
+        setMovieList([]);
+        return;
       }
 
       const moviesResponse = await response.json();
 
-      if (moviesResponse.response === false) {
+      if (moviesResponse.response === false || !response.ok) {
         setErrorMessage(moviesResponse.Error || "Failed to fetch movies");
         setMovieList([]);
         return;
       }
 
       setMovieList(moviesResponse.results);
+
+      if (query && moviesResponse.results.length > 0) {
+        await updateSearchCount(query, moviesResponse.results[0]);
+      }
     } catch (e) {
       console.log(`Error fetching movies: ${e}`);
       setErrorMessage(e.message);
@@ -81,11 +79,27 @@ const App = () => {
   };
 
   /**
-   * useEffect triggers a fetch whenever the search term updates.
+   * Loads trending movies from the backend (Appwrite).
+   *
+   * @async
+   * @returns {Promise<void>}
    */
+  const loadTrendingMovies = async () => {
+    try {
+      const movies = await getTrendingMovies();
+      setTrendingMovies(movies);
+    } catch (error) {
+      console.error("Error fetching trending movies:", error);
+    }
+  };
+
   useEffect(() => {
-    fetchMovies(debouncedSeachTerm);
-  }, [debouncedSeachTerm]);
+    fetchMovies(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
+
+  useEffect(() => {
+    loadTrendingMovies();
+  }, []);
 
   return (
     <main>
@@ -100,6 +114,24 @@ const App = () => {
           </h1>
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
+
+        {trendingMovies.length > 0 && (
+          <section className="trending">
+            <h2>Trending Movies</h2>
+            <ul>
+              {trendingMovies.map((movie, index) => (
+                <li key={movie.movie_id}>
+                  <p>{index + 1}</p>
+                  <img
+                    src={movie.poster_url}
+                    alt={movie.searchTerm}
+                    loading="lazy"
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className="all-movies">
           <h2>All Movies</h2>
