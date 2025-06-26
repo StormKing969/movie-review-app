@@ -8,17 +8,6 @@ const COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_ID;
 const client = new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID);
 const database = new Databases(client);
 
-/**
- * Updates the search count for a given search term and movie in the Appwrite database.
- * If the movie already exists, increments the count. Otherwise, creates a new document.
- *
- * @async
- * @param {string} searchTerm - The search term used to find the movie.
- * @param {Object} movie - The movie object containing details like `id` and `poster_path`.
- * @param {number} movie.id - The unique identifier for the movie.
- * @param {string} movie.poster_path - The path to the movie's poster image.
- * @returns {Promise<void>}
- */
 export const updateSearchCount = async (searchTerm, movie) => {
   try {
     if (movie.id === undefined || movie.poster_path === undefined) {
@@ -48,12 +37,6 @@ export const updateSearchCount = async (searchTerm, movie) => {
   }
 };
 
-/**
- * Fetches the top 10 trending movies from the Appwrite database based on search count.
- *
- * @async
- * @returns {Promise<Array<Object>>} - A list of trending movies with their search term, count, ID, and poster URL.
- */
 export const getTrendingMovies = async () => {
   try {
     const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [

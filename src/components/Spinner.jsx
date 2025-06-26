@@ -1,12 +1,5 @@
 import React from "react";
 
-/**
- Spinner Component
-
- Renders a loading spinner using SVG for indicating loading states.
-
- @returns {JSX.Element} The rendered spinner component.
- */
 const Spinner = () => {
   return (
     <div role="status">

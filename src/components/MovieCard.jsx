@@ -1,26 +1,59 @@
-import React from "react";
+import React, {useState} from "react";
+import {useNavigate} from "react-router-dom";
 
-/**
- * MovieCard Component
- *
- * Displays a movie card with details such as title, rating, poster, release year, and original language.
- *
- * Props:
- * @param {Object} props - The props object.
- * @param {Object} props.movie - The movie object containing details about the movie.
- * @param {string} props.movie.title - The title of the movie.
- * @param {number} props.movie.vote_average - The average vote rating of the movie.
- * @param {string} props.movie.poster_path - The path to the movie's poster image.
- * @param {string} props.movie.release_date - The release date of the movie in YYYY-MM-DD format.
- * @param {string} props.movie.original_language - The original language of the movie.
- *
- * @returns {JSX.Element} A styled movie card displaying the movie's details.
- */
+const API_BASE_URL = " https://api.themoviedb.org/3/movie";
+
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
+const API_OPTIONS = {
+    method: "GET",
+    headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${API_KEY}`,
+    },
+};
+
 const MovieCard = ({
-  movie: { title, vote_average, poster_path, release_date, original_language },
+  movie: { title, vote_average, poster_path, release_date, original_language, id }, setSelectedMovie
 }) => {
+    const navigate = useNavigate();
+    const [fetchingMovieDetailsError, setFetchingMovieDetailsError] = useState(false);
+
+    const handleOnClick = () => {
+        fetchMovieDetails(id).then(() => {
+            if (!fetchingMovieDetailsError) {
+                navigate(`/movie/${id}/${title}`)
+            } else {
+                console.error("Error fetching movie details, cannot navigate to movie page.");
+            }
+        });
+
+    }
+
+    const fetchMovieDetails = async (movieId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${movieId}`, API_OPTIONS);
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch movie details");
+            }
+
+            const movieDetails = await response.json();
+
+            if (movieDetails.response === false) {
+                setFetchingMovieDetailsError(true);
+                console.error("Error fetching movie details:", movieDetails.Error || "Unknown error");
+                return;
+            }
+
+            setSelectedMovie(movieDetails);
+        } catch (error) {
+            console.error("Error fetching movie details:", error);
+        }
+    }
+
   return (
-    <div className="movie-card">
+    <div className="movie-card" onClick={() => handleOnClick()}>
       <img
         src={
           poster_path
