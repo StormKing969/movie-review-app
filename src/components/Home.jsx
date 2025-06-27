@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from "react";
 import {useDebounce} from "react-use";
-import {getTrendingMovies, updateSearchCount} from "../appwrite.js";
+import {getTrendingMovies} from "../appwrite.js";
 import Search from "./Search.jsx";
 import Spinner from "./Spinner.jsx";
 import MovieCard from "./MovieCard.jsx";
+import {useNavigate} from "react-router-dom";
+import {fetchMovieDetails} from "../utility/getMovieDetails.js";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 
@@ -17,13 +19,17 @@ const API_OPTIONS = {
   },
 };
 
-const Home = ({setSelectedMovie}) => {
+const Home = ({ setSelectedMovieDetails, setSelectedMovieVideo }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [trendingMovies, setTrendingMovies] = useState([]);
+  const [fetchingMovieDetailsError, setFetchingMovieDetailsError] =
+    useState(false);
+
+  const navigate = useNavigate();
 
   useDebounce(() => setDebouncedSearchTerm(searchTerm), 1000, [searchTerm]);
 
@@ -52,10 +58,6 @@ const Home = ({setSelectedMovie}) => {
       }
 
       setMovieList(moviesResponse.results);
-
-      if (query && moviesResponse.results.length > 0) {
-        await updateSearchCount(query, moviesResponse.results[0]);
-      }
     } catch (e) {
       console.log(`Error fetching movies: ${e}`);
       setErrorMessage(e.message);
@@ -87,7 +89,7 @@ const Home = ({setSelectedMovie}) => {
 
       <div className="wrapper">
         <header>
-          <img src="./hero.png" alt="Hero" />
+          <img src="/hero.png" alt="Hero" />
           <h1>
             Find <span className="text-gradient">Movies</span> You'll Enjoy
             Without the Hassle
@@ -100,9 +102,32 @@ const Home = ({setSelectedMovie}) => {
             <h2>Trending Movies</h2>
             <ul>
               {trendingMovies.map((movie, index) => (
-                <li key={movie.movie_id}>
+                <li
+                  key={movie.movie_id}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    fetchMovieDetails(
+                      movie.movie_id,
+                      movie.poster_url,
+                      movie.movie_name,
+                      setFetchingMovieDetailsError,
+                      setSelectedMovieDetails,
+                      setSelectedMovieVideo,
+                    ).then(() => {
+                      if (fetchingMovieDetailsError) {
+                        console.error(
+                          "Error fetching movie details, cannot navigate to movie page.",
+                        );
+                      } else {
+                        navigate(
+                          `/movie/${movie.movie_id}/${movie.movie_name}`,
+                        );
+                      }
+                    });
+                  }}
+                >
                   <p>{index + 1}</p>
-                  <img src={movie.poster_url} alt={movie.searchTerm} />
+                  <img src={movie.poster_url} alt={movie.movie_name} />
                 </li>
               ))}
             </ul>
@@ -118,7 +143,14 @@ const Home = ({setSelectedMovie}) => {
           ) : (
             <ul>
               {movieList.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} setSelectedMovie={setSelectedMovie} />
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  setSelectedMovieDetails={setSelectedMovieDetails}
+                  setSelectedMovieVideo={setSelectedMovieVideo}
+                  setFetchingMovieDetailsError={setFetchingMovieDetailsError}
+                  fetchingMovieDetailsError={fetchingMovieDetailsError}
+                />
               ))}
             </ul>
           )}

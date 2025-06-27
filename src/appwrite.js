@@ -8,15 +8,15 @@ const COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_ID;
 const client = new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID);
 const database = new Databases(client);
 
-export const updateSearchCount = async (searchTerm, movie) => {
+export const updateSearchCount = async (id, poster_path, title) => {
   try {
-    if (movie.id === undefined || movie.poster_path === undefined) {
-      console.error("Movie data is incomplete:", movie);
+    if (id === undefined || poster_path === undefined) {
+      console.error("Movie data is incomplete");
       return;
     }
 
     const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal("searchTerm", searchTerm),
+      Query.equal("movie_id", id),
     ]);
 
     if (result.documents.length > 0) {
@@ -26,10 +26,10 @@ export const updateSearchCount = async (searchTerm, movie) => {
       });
     } else {
       await database.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
-        searchTerm: searchTerm,
         count: 1,
-        movie_id: movie.id,
-        poster_url: `https://image.tmdb.org/t/p/w500/${movie.poster_path}`,
+        movie_id: id,
+        poster_url: `https://image.tmdb.org/t/p/w500/${poster_path}`,
+        movie_name: title,
       });
     }
   } catch (error) {
@@ -41,14 +41,14 @@ export const getTrendingMovies = async () => {
   try {
     const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
       Query.orderDesc("count"),
-      Query.limit(10),
+      Query.limit(5),
     ]);
 
     return result.documents.map((doc) => ({
-      searchTerm: doc.searchTerm,
       count: doc.count,
       movie_id: doc.movie_id,
       poster_url: doc.poster_url,
+      movie_name: doc.movie_name
     }));
   } catch (error) {
     console.error("Error fetching trending movies:", error);

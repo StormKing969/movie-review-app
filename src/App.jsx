@@ -4,13 +4,34 @@ import Home from "./components/Home.jsx";
 import MoviePage from "./components/MoviePage.jsx";
 
 const App = () => {
-  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [selectedMovieDetails, setSelectedMovieDetails] = useState(null);
+  const [selectedMovieVideo, setSelectedMovieVideo] = useState(null);
+
+  console.log(selectedMovieDetails);
+  console.log(selectedMovieVideo);
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route exact path="/" element={<Home setSelectedMovie={setSelectedMovie} />} />
-        <Route path="/movie/:movieID/:movieName" element={<MoviePage selectedMovie={selectedMovie} />} />
+        <Route
+          exact
+          path="/"
+          element={
+            <Home
+              setSelectedMovieDetails={setSelectedMovieDetails}
+              setSelectedMovieVideo={setSelectedMovieVideo}
+            />
+          }
+        />
+        <Route
+          path="/movie/:movieID/:movieName"
+          element={
+            <MoviePage
+              selectedMovieDetails={selectedMovieDetails}
+              selectedMovieVideo={selectedMovieVideo}
+            />
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

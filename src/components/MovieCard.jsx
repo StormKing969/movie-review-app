@@ -1,56 +1,41 @@
-import React, {useState} from "react";
+import React from "react";
 import {useNavigate} from "react-router-dom";
-
-const API_BASE_URL = " https://api.themoviedb.org/3/movie";
-
-const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-
-const API_OPTIONS = {
-    method: "GET",
-    headers: {
-        accept: "application/json",
-        Authorization: `Bearer ${API_KEY}`,
-    },
-};
+import {fetchMovieDetails} from "../utility/getMovieDetails.js";
 
 const MovieCard = ({
-  movie: { title, vote_average, poster_path, release_date, original_language, id }, setSelectedMovie
+  movie: {
+    title,
+    vote_average,
+    poster_path,
+    release_date,
+    original_language,
+    id,
+  },
+  setSelectedMovieDetails,
+  setSelectedMovieVideo,
+  setFetchingMovieDetailsError,
+  fetchingMovieDetailsError,
 }) => {
-    const navigate = useNavigate();
-    const [fetchingMovieDetailsError, setFetchingMovieDetailsError] = useState(false);
+  const navigate = useNavigate();
 
-    const handleOnClick = () => {
-        fetchMovieDetails(id).then(() => {
-            if (!fetchingMovieDetailsError) {
-                navigate(`/movie/${id}/${title}`)
-            } else {
-                console.error("Error fetching movie details, cannot navigate to movie page.");
-            }
-        });
-
-    }
-
-    const fetchMovieDetails = async (movieId) => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/${movieId}`, API_OPTIONS);
-
-            if (!response.ok) {
-                throw new Error("Failed to fetch movie details");
-            }
-
-            const movieDetails = await response.json();
-
-            if (movieDetails.response === false) {
-                setFetchingMovieDetailsError(true);
-                console.error("Error fetching movie details:", movieDetails.Error || "Unknown error");
-                return;
-            }
-
-            setSelectedMovie(movieDetails);
-        } catch (error) {
-            console.error("Error fetching movie details:", error);
-        }
-    }
+  const handleOnClick = () => {
+    fetchMovieDetails(
+      id,
+      poster_path,
+      title,
+      setFetchingMovieDetailsError,
+      setSelectedMovieDetails,
+      setSelectedMovieVideo,
+    ).then(() => {
+      if (!fetchingMovieDetailsError) {
+        navigate(`/movie/${id}/${title}`);
+      } else {
+        console.error(
+          "Error fetching movie details, cannot navigate to movie page.",
+        );
+      }
+    });
+  };
 
   return (
     <div className="movie-card" onClick={() => handleOnClick()}>
@@ -68,7 +53,7 @@ const MovieCard = ({
 
         <div className="content">
           <div className="rating">
-            <img src="star.svg" alt="star" />
+            <img src="/star.svg" alt="star" />
             <p>{vote_average ? vote_average.toFixed(1) : "N/A"}</p>
           </div>
 
