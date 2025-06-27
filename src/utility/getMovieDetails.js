@@ -44,6 +44,7 @@ export const fetchMovieDetails = async (
 
     await fetchMovieVideo(
       movieId,
+      movieDetails.title,
       setFetchingMovieDetailsError,
       setSelectedMovieVideo,
     );
@@ -54,6 +55,7 @@ export const fetchMovieDetails = async (
 
 const fetchMovieVideo = async (
   movieId,
+  title,
   setFetchingMovieDetailsError,
   setSelectedMovieVideo,
 ) => {
@@ -78,7 +80,15 @@ const fetchMovieVideo = async (
       return;
     }
 
-    setSelectedMovieVideo(video);
+    const keyword = "Official";
+
+    const matchingVideos = video.results.filter((vid) =>
+        (vid.name?.toLowerCase().includes(keyword.toLowerCase()) ||
+        vid.name?.toLowerCase().includes(title.toLowerCase())) &&
+        vid.site === "YouTube"
+    );
+
+    setSelectedMovieVideo(matchingVideos);
   } catch (error) {
     console.error("Error fetching movie images:", error);
   }

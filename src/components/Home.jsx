@@ -35,6 +35,8 @@ const Home = ({ setSelectedMovieDetails, setSelectedMovieVideo }) => {
 
   const fetchMovies = async (query = "") => {
     setIsLoading(true);
+    setSelectedMovieDetails(null);
+    setSelectedMovieVideo(null);
     setErrorMessage("");
 
     try {

@@ -7,7 +7,6 @@ const App = () => {
   const [selectedMovieDetails, setSelectedMovieDetails] = useState(null);
   const [selectedMovieVideo, setSelectedMovieVideo] = useState(null);
 
-  console.log(selectedMovieDetails);
   console.log(selectedMovieVideo);
 
   return (
