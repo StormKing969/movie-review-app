@@ -14,6 +14,7 @@ const MovieCard = ({
   setSelectedMovieDetails,
   setSelectedMovieVideo,
   setFetchingMovieDetailsError,
+  setSelectedMovieImage,
   fetchingMovieDetailsError,
 }) => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const MovieCard = ({
       setFetchingMovieDetailsError,
       setSelectedMovieDetails,
       setSelectedMovieVideo,
+      setSelectedMovieImage,
     ).then(() => {
       if (!fetchingMovieDetailsError) {
         navigate(`/movie/${id}/${title}`);

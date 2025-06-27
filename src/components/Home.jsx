@@ -19,7 +19,11 @@ const API_OPTIONS = {
   },
 };
 
-const Home = ({ setSelectedMovieDetails, setSelectedMovieVideo }) => {
+const Home = ({
+  setSelectedMovieDetails,
+  setSelectedMovieVideo,
+  setSelectedMovieImage,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
@@ -37,6 +41,7 @@ const Home = ({ setSelectedMovieDetails, setSelectedMovieVideo }) => {
     setIsLoading(true);
     setSelectedMovieDetails(null);
     setSelectedMovieVideo(null);
+    setSelectedMovieImage(null);
     setErrorMessage("");
 
     try {
@@ -61,7 +66,7 @@ const Home = ({ setSelectedMovieDetails, setSelectedMovieVideo }) => {
 
       setMovieList(moviesResponse.results);
     } catch (e) {
-      console.log(`Error fetching movies: ${e}`);
+      console.error(`Error fetching movies: ${e}`);
       setErrorMessage(e.message);
     } finally {
       setIsLoading(false);
@@ -115,6 +120,7 @@ const Home = ({ setSelectedMovieDetails, setSelectedMovieVideo }) => {
                       setFetchingMovieDetailsError,
                       setSelectedMovieDetails,
                       setSelectedMovieVideo,
+                      setSelectedMovieImage,
                     ).then(() => {
                       if (fetchingMovieDetailsError) {
                         console.error(
@@ -150,6 +156,7 @@ const Home = ({ setSelectedMovieDetails, setSelectedMovieVideo }) => {
                   movie={movie}
                   setSelectedMovieDetails={setSelectedMovieDetails}
                   setSelectedMovieVideo={setSelectedMovieVideo}
+                  setSelectedMovieImage={setSelectedMovieImage}
                   setFetchingMovieDetailsError={setFetchingMovieDetailsError}
                   fetchingMovieDetailsError={fetchingMovieDetailsError}
                 />

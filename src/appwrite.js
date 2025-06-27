@@ -37,6 +37,23 @@ export const updateSearchCount = async (id, poster_path, title) => {
   }
 };
 
+export const getMovieSearchCount = async (id) => {
+  try {
+    const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal("movie_id", id),
+    ]);
+
+    if (result.documents.length > 0) {
+      return result.documents[0].count;
+    } else {
+      return 1;
+    }
+  } catch (error) {
+    console.error("Error fetching movie search count:", error);
+    return 0;
+  }
+};
+
 export const getTrendingMovies = async () => {
   try {
     const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
@@ -48,7 +65,7 @@ export const getTrendingMovies = async () => {
       count: doc.count,
       movie_id: doc.movie_id,
       poster_url: doc.poster_url,
-      movie_name: doc.movie_name
+      movie_name: doc.movie_name,
     }));
   } catch (error) {
     console.error("Error fetching trending movies:", error);

@@ -6,8 +6,7 @@ import MoviePage from "./components/MoviePage.jsx";
 const App = () => {
   const [selectedMovieDetails, setSelectedMovieDetails] = useState(null);
   const [selectedMovieVideo, setSelectedMovieVideo] = useState(null);
-
-  console.log(selectedMovieVideo);
+  const [selectedMovieImage, setSelectedMovieImage] = useState(null);
 
   return (
     <BrowserRouter>
@@ -19,6 +18,7 @@ const App = () => {
             <Home
               setSelectedMovieDetails={setSelectedMovieDetails}
               setSelectedMovieVideo={setSelectedMovieVideo}
+              setSelectedMovieImage={setSelectedMovieImage}
             />
           }
         />
@@ -28,6 +28,7 @@ const App = () => {
             <MoviePage
               selectedMovieDetails={selectedMovieDetails}
               selectedMovieVideo={selectedMovieVideo}
+              selectedMovieImage={selectedMovieImage}
             />
           }
         />

@@ -19,6 +19,7 @@ export const fetchMovieDetails = async (
   setFetchingMovieDetailsError,
   setSelectedMovieDetails,
   setSelectedMovieVideo,
+  setSelectedMovieImage,
 ) => {
   try {
     await updateSearchCount(movieId, poster_path, title);
@@ -44,10 +45,11 @@ export const fetchMovieDetails = async (
 
     await fetchMovieVideo(
       movieId,
-      movieDetails.title,
       setFetchingMovieDetailsError,
       setSelectedMovieVideo,
     );
+
+    await fetchMovieImages(movieId, setSelectedMovieImage);
   } catch (error) {
     console.error("Error fetching movie details:", error);
   }
@@ -55,7 +57,6 @@ export const fetchMovieDetails = async (
 
 const fetchMovieVideo = async (
   movieId,
-  title,
   setFetchingMovieDetailsError,
   setSelectedMovieVideo,
 ) => {
@@ -82,14 +83,56 @@ const fetchMovieVideo = async (
 
     const keyword = "Official";
 
-    const matchingVideos = video.results.filter((vid) =>
-        (vid.name?.toLowerCase().includes(keyword.toLowerCase()) ||
-        vid.name?.toLowerCase().includes(title.toLowerCase())) &&
-        vid.site === "YouTube"
+    const matchingVideos = video.results.filter(
+      (vid) =>
+        vid.name?.toLowerCase().includes(keyword.toLowerCase()) &&
+        vid.site === "YouTube",
     );
 
     setSelectedMovieVideo(matchingVideos);
   } catch (error) {
     console.error("Error fetching movie images:", error);
+  }
+};
+
+const fetchMovieImages = async (movieId, setSelectedMovieImage) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/${movieId}/images`,
+      API_OPTIONS,
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch movie images");
+    }
+
+    const images = await response.json();
+
+    if (images.response === false) {
+      console.error(
+        "Error fetching movie images:",
+        images.Error || "Unknown error",
+      );
+      return;
+    }
+
+    let counter = 0;
+    images.posters.forEach((image) => {
+      if (image.vote_count > counter) {
+        counter = image.vote_count;
+      }
+    });
+
+    images.posters = images.posters.filter(
+      (image) =>
+        image.vote_count === counter &&
+        image.file_path !== null &&
+        image.file_path !== "",
+    );
+
+    setSelectedMovieImage(images.posters[0]?.file_path);
+  } catch (error) {
+    console.error("Error fetching movie images:", error);
+    return [];
   }
 };
